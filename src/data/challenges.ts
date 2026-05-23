@@ -8,7 +8,7 @@ export interface Challenge {
   description: string;
   hint: string;
   category: 'basics' | 'loops' | 'conditionals';
-  validate: (commands: Command[], context: RunContext) => boolean;
+  validate: (commands: Command[], context: RunContext, code: string) => boolean | string;
 }
 
 function countType(commands: Command[], type: Command['type']): number {
@@ -89,6 +89,30 @@ left(3)`,
   },
   {
     id: 7,
+    emoji: '🔢',
+    title: 'Step by Step',
+    category: 'loops',
+    description:
+      "Use a for loop to walk the dog one step at a time. Say the step number each time. Do exactly as many steps as the dog's energy level!",
+    hint: `for (let i = 1; i <= energy; i++) {
+  move(1)
+  say("Step " + i)
+}`,
+    validate: (cmds, ctx, code) => {
+      if (!/\bfor\b/.test(code))
+        return "Use a for loop! Try: for (let i = 1; i <= energy; i++)";
+      const moves = cmds.filter(
+        (c): c is Extract<Command, { type: 'move' }> => c.type === 'move'
+      );
+      if (moves.length !== ctx.energy || !moves.every(m => m.steps === 1))
+        return `Walk exactly ${ctx.energy} step${ctx.energy !== 1 ? 's' : ''}, one move(1) per loop turn!`;
+      if (countType(cmds, 'say') !== ctx.energy)
+        return `Say the step number each turn — ${ctx.energy} say() calls needed!`;
+      return true;
+    },
+  },
+  {
+    id: 8,
     emoji: '⚡',
     title: 'Energy Check',
     category: 'conditionals',
@@ -105,7 +129,7 @@ left(3)`,
         : countType(cmds, 'sit') >= 1,
   },
   {
-    id: 8,
+    id: 9,
     emoji: '🎭',
     title: 'Mood Master',
     category: 'conditionals',

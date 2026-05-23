@@ -158,11 +158,13 @@ export function useCommandRunner() {
     await executeCommands(celebCmds);
   }, [isRunning, executeCommands]);
 
+  const showError = useCallback((msg: string) => setError(msg), []);
+
   const runCode = useCallback(
     (
       code: string,
       worldWidth: number,
-      onDone?: (commands: Command[], ctx: RunContext) => void
+      onDone?: (commands: Command[], ctx: RunContext, code: string) => void
     ) => {
       if (isRunning) return;
       worldWidthRef.current = worldWidth;
@@ -213,7 +215,7 @@ export function useCommandRunner() {
           addLog(`⚠️ Too many commands! Only the first ${MAX_COMMANDS} will run.`);
         }
 
-        executeCommands(commands).then(() => onDone?.(commands, snap));
+        executeCommands(commands).then(() => onDone?.(commands, snap, code));
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setError(msg);
@@ -238,5 +240,5 @@ export function useCommandRunner() {
     }, 100);
   }, []);
 
-  return { dogState, log, isRunning, error, context, runCode, celebrate, stop, reset };
+  return { dogState, log, isRunning, error, context, runCode, celebrate, stop, reset, showError };
 }

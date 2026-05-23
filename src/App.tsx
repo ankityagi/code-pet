@@ -11,7 +11,7 @@ import type { RunContext } from './hooks/useCommandRunner';
 import './App.css';
 
 export default function App() {
-  const { dogState, log, isRunning, error, context, runCode, celebrate, stop, reset } =
+  const { dogState, log, isRunning, error, context, runCode, celebrate, stop, reset, showError } =
     useCommandRunner();
 
   const worldWidthRef = useRef(600);
@@ -25,17 +25,19 @@ export default function App() {
   const currentChallenge = allDone ? null : CHALLENGES[challengeIndex];
 
   const handleRunDone = useCallback(
-    (commands: Command[], ctx: RunContext) => {
+    (commands: Command[], ctx: RunContext, code: string) => {
       if (!currentChallenge) return;
-      if (currentChallenge.validate(commands, ctx)) {
+      const result = currentChallenge.validate(commands, ctx, code);
+      if (result === true) {
         setCompletedCount(n => n + 1);
         celebrate().then(() => setShowSuccess(true));
       } else {
+        if (typeof result === 'string') showError(result);
         setFailFlash(true);
         setTimeout(() => setFailFlash(false), 600);
       }
     },
-    [currentChallenge, celebrate]
+    [currentChallenge, celebrate, showError]
   );
 
   const handleRun = useCallback(
